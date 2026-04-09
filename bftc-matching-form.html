@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFTC | マッチング申請</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #e8003d;
+    --text: #e8e8f0;
+    --text-dim: #7a7a9a;
+    --green: #00e57a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; }
+  .logo span { color: var(--accent); }
+  .event-badge { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+
+  .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; margin-bottom: 6px; }
+  .page-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 32px; line-height: 1.8; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 24px; margin-bottom: 20px; }
+
+  .section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+    margin-bottom: 20px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .form-group:last-child { margin-bottom: 0; }
+
+  label.field-label { font-size: 11px; font-weight: 700; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+  .required { color: var(--accent); margin-left: 4px; }
+
+  input[type="text"], select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder, textarea::placeholder { color: var(--text-dim); }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .checkbox-item:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(232,0,61,0.1);
+    color: var(--accent);
+  }
+
+  .checkbox-item input { display: none; }
+
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover { background: #c0002f; }
+  .btn-submit:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+
+  .success-screen { display: none; text-align: center; padding: 60px 20px; }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; margin-bottom: 10px; color: var(--green); }
+  .success-sub { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+
+  .error-msg { font-size: 11px; color: var(--accent); margin-top: 4px; display: none; }
+  .has-error input[type="text"], .has-error select, .has-error textarea { border-color: var(--accent); }
+  .has-error .error-msg { display: block; }
+  .has-error .checkbox-group-wrap { outline: 1px solid var(--accent); border-radius: 3px; padding: 4px; }
+
+  .sending-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 999;
+    align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  .sending-overlay.active { display: flex; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sending-text { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">B<span>F</span>TC</div>
+  <div class="event-badge">マッチング申請</div>
+</header>
+
+<div class="container">
+  <div id="formScreen">
+    <div class="page-title">マッチング申請フォーム</div>
+    <div class="page-sub">
+      対戦相手をお探しのチームはこちらからご申請ください。<br>
+      内容を確認の上、BFTCよりDiscordにてご連絡いたします。
+    </div>
+
+    <!-- チーム基本情報 -->
+    <div class="section">
+      <div class="section-label">チーム基本情報</div>
+
+      <div class="form-group" id="g-teamname">
+        <label class="field-label">チーム名<span class="required">*</span></label>
+        <input type="text" id="teamName" placeholder="例：Kansai Warriors">
+        <div class="error-msg">チーム名を入力してください</div>
+      </div>
+
+      <div class="form-group" id="g-rep">
+        <label class="field-label">代表者名 / Discord ID<span class="required">*</span></label>
+        <input type="text" id="repName" placeholder="例：スト6太郎 / sto#6666">
+        <div class="error-msg">代表者名・Discord IDを入力してください</div>
+      </div>
+
+      <div class="form-group" id="g-region">
+        <label class="field-label">メイン活動地域<span class="required">*</span></label>
+        <select id="region">
+          <option value="">選択してください</option>
+          <option>全国</option>
+          <option>北海道</option>
+          <option>東北</option>
+          <option>関東</option>
+          <option>東海</option>
+          <option>北陸</option>
+          <option>近畿</option>
+          <option>中国</option>
+          <option>四国</option>
+          <option>九州・沖縄</option>
+        </select>
+        <div class="error-msg">活動地域を選択してください</div>
+      </div>
+
+      <div class="form-group" id="g-members">
+        <label class="field-label">メンバー人数<span class="required">*</span></label>
+        <input type="text" id="members" placeholder="例：8人">
+        <div class="error-msg">メンバー人数を入力してください</div>
+      </div>
+
+      <div class="form-group" id="g-freq">
+        <label class="field-label">活動頻度<span class="required">*</span></label>
+        <select id="freq">
+          <option value="">選択してください</option>
+          <option>週1以上</option>
+          <option>月2〜3回</option>
+          <option>月1程度</option>
+          <option>不定期</option>
+        </select>
+        <div class="error-msg">活動頻度を選択してください</div>
+      </div>
+    </div>
+
+    <!-- ランク情報 -->
+    <div class="section">
+      <div class="section-label">ランク情報</div>
+
+      <div class="form-group" id="g-teamrank">
+        <label class="field-label">自チームランク幅<span class="required">*</span></label>
+        <div class="checkbox-group-wrap">
+          <div class="checkbox-group" id="teamrank-group">
+            <label class="checkbox-item"><input type="checkbox" name="teamrank" value="マスター未満">マスター未満</label>
+            <label class="checkbox-item"><input type="checkbox" name="teamrank" value="チームの半分はマスター以上">チームの半分はマスター以上</label>
+            <label class="checkbox-item"><input type="checkbox" name="teamrank" value="チームの半分以上はグラマス以上">チームの半分以上はグラマス以上</label>
+            <label class="checkbox-item"><input type="checkbox" name="teamrank" value="チーム全員アルマス以上">チーム全員アルマス以上</label>
+          </div>
+        </div>
+        <div class="error-msg" id="teamrank-err">自チームランク幅を選択してください</div>
+      </div>
+
+      <div class="form-group" id="g-matchrank">
+        <label class="field-label">マッチ希望ランク帯<span class="required">*</span></label>
+        <div class="checkbox-group-wrap">
+          <div class="checkbox-group" id="matchrank-group">
+            <label class="checkbox-item"><input type="checkbox" name="matchrank" value="マスター未満">マスター未満</label>
+            <label class="checkbox-item"><input type="checkbox" name="matchrank" value="チームの半分はマスター以上">チームの半分はマスター以上</label>
+            <label class="checkbox-item"><input type="checkbox" name="matchrank" value="チームの半分以上はグラマス以上">チームの半分以上はグラマス以上</label>
+            <label class="checkbox-item"><input type="checkbox" name="matchrank" value="チーム全員アルマス以上">チーム全員アルマス以上</label>
+          </div>
+        </div>
+        <div class="error-msg" id="matchrank-err">マッチ希望ランク帯を選択してください</div>
+      </div>
+    </div>
+
+    <!-- 対戦希望 -->
+    <div class="section">
+      <div class="section-label">対戦希望</div>
+
+      <div class="form-group" id="g-format">
+        <label class="field-label">希望対戦形式<span class="required">*</span></label>
+        <div class="checkbox-group-wrap">
+          <div class="checkbox-group" id="format-group">
+            <label class="checkbox-item"><input type="checkbox" name="format" value="オンラインチーム戦">オンラインチーム戦</label>
+            <label class="checkbox-item"><input type="checkbox" name="format" value="個人○先">個人○先</label>
+            <label class="checkbox-item"><input type="checkbox" name="format" value="総当たり（複数チームで）">総当たり（複数チームで）</label>
+            <label class="checkbox-item"><input type="checkbox" name="format" value="その他">その他</label>
+          </div>
+        </div>
+        <div class="error-msg" id="format-err">希望対戦形式を選択してください</div>
+      </div>
+
+      <div class="form-group" id="g-day">
+        <label class="field-label">希望曜日<span class="required">*</span></label>
+        <div class="checkbox-group-wrap">
+          <div class="checkbox-group" id="day-group">
+            <label class="checkbox-item"><input type="checkbox" name="day" value="月">月</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="火">火</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="水">水</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="木">木</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="金">金</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="土">土</label>
+            <label class="checkbox-item"><input type="checkbox" name="day" value="日">日</label>
+          </div>
+        </div>
+        <div class="error-msg" id="day-err">希望曜日を選択してください</div>
+      </div>
+
+      <div class="form-group" id="g-time">
+        <label class="field-label">希望時間帯<span class="required">*</span></label>
+        <input type="text" id="time" placeholder="例：20時〜23時">
+        <div class="error-msg">希望時間帯を入力してください</div>
+      </div>
+    </div>
+
+    <!-- コメント -->
+    <div class="section">
+      <div class="section-label">その他</div>
+      <div class="form-group">
+        <label class="field-label">コメント・要望（任意）</label>
+        <textarea id="comment" placeholder="対戦相手への要望や自チームのPRなど、自由にご記入ください"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitForm()">申請を送信する</button>
+  </div>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">⚔️</div>
+    <div class="success-title">申請完了</div>
+    <div class="success-sub">
+      マッチング申請を受け付けました。<br>
+      内容を確認の上、BFTCよりDiscordにてご連絡いたします。<br>
+      しばらくお待ちください。<br><br>
+      <span style="color:var(--accent);font-weight:700;">— BFTC運営</span>
+    </div>
+  </div>
+</div>
+
+<div class="sending-overlay" id="sendingOverlay">
+  <div class="spinner"></div>
+  <div class="sending-text">送信中...</div>
+</div>
+
+<script>
+  // ★ Google Apps ScriptのデプロイURLを貼る（フォームB用に新しく作成）
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxPhj1Dhtm-p9gXXd1hJlnO526i7488aK78aNNKiK__d6329QhH2U4fPQFwaaMWED2I/exec';
+
+  function getChecked(name) {
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)]
+      .map(el => el.value).join('、');
+  }
+
+  function validate() {
+    let valid = true;
+
+    const fields = [
+      { id: 'teamName', g: 'g-teamname' },
+      { id: 'repName',  g: 'g-rep' },
+      { id: 'members',  g: 'g-members' },
+      { id: 'time',     g: 'g-time' },
+    ];
+
+    fields.forEach(f => {
+      const val = document.getElementById(f.id).value.trim();
+      const g = document.getElementById(f.g);
+      val ? g.classList.remove('has-error') : (g.classList.add('has-error'), valid = false);
+    });
+
+    const selects = [
+      { id: 'region', g: 'g-region' },
+      { id: 'freq',   g: 'g-freq' },
+    ];
+
+    selects.forEach(s => {
+      const val = document.getElementById(s.id).value;
+      const g = document.getElementById(s.g);
+      val ? g.classList.remove('has-error') : (g.classList.add('has-error'), valid = false);
+    });
+
+    const checkGroups = [
+      { name: 'teamrank', g: 'g-teamrank', err: 'teamrank-err' },
+      { name: 'matchrank', g: 'g-matchrank', err: 'matchrank-err' },
+      { name: 'format',   g: 'g-format',   err: 'format-err' },
+      { name: 'day',      g: 'g-day',      err: 'day-err' },
+    ];
+
+    checkGroups.forEach(c => {
+      const checked = document.querySelectorAll(`input[name="${c.name}"]:checked`).length > 0;
+      const g = document.getElementById(c.g);
+      const err = document.getElementById(c.err);
+      if (checked) { g.classList.remove('has-error'); err.style.display = 'none'; }
+      else { g.classList.add('has-error'); err.style.display = 'block'; valid = false; }
+    });
+
+    return valid;
+  }
+
+  function submitForm() {
+    if (!validate()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+    const params = new URLSearchParams();
+    params.append('timestamp', new Date().toLocaleString('ja-JP'));
+    params.append('teamName',  document.getElementById('teamName').value.trim());
+    params.append('repName',   document.getElementById('repName').value.trim());
+    params.append('region',    document.getElementById('region').value);
+    params.append('members',   document.getElementById('members').value.trim());
+    params.append('freq',      document.getElementById('freq').value);
+    params.append('teamRank',  getChecked('teamrank'));
+    params.append('matchRank', getChecked('matchrank'));
+    params.append('format',    getChecked('format'));
+    params.append('days',      getChecked('day'));
+    params.append('time',      document.getElementById('time').value.trim());
+    params.append('comment',   document.getElementById('comment').value.trim());
+
+    document.getElementById('sendingOverlay').classList.add('active');
+
+    fetch(GAS_URL + '?' + params.toString())
+      .then(() => {
+        document.getElementById('sendingOverlay').classList.remove('active');
+        document.getElementById('formScreen').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(() => {
+        document.getElementById('sendingOverlay').classList.remove('active');
+        alert('送信に失敗しました。時間をおいて再度お試しください。');
+      });
+  }
+</script>
+</body>
+</html>
