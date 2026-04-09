@@ -305,7 +305,7 @@
 
 <script>
   // ★ Google Apps ScriptをデプロイしたらここのURLを書き換えてください
-  const GAS_URL = 'YOUR_GAS_DEPLOY_URL_HERE';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxPhj1Dhtm-p9gXXd1hJlnO526i7488aK78aNNKiK__d6329QhH2U4fPQFwaaMWED2I/exec';
 
   let memberCount = 0;
   const MAX_MEMBERS = 15;
@@ -429,7 +429,7 @@
     try {
       await fetch(GAS_URL, {
         method: 'POST',
-        mode: 'no-cors',
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
