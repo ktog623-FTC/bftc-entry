@@ -307,7 +307,7 @@
 
 <script>
   // ★ Google Apps ScriptをデプロイしたらここのURLを書き換えてください
-  const GAS_URL = 'YOUR_GAS_DEPLOY_URL_HERE';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxPhj1Dhtm-p9gXXd1hJlnO526i7488aK78aNNKiK__d6329QhH2U4fPQFwaaMWED2I/exec';
 
   let memberCount = 0;
   const MAX_MEMBERS = 15;
@@ -413,6 +413,7 @@
       const op = document.querySelector(`input[name="op-${id}"]:checked`);
       return {
         playerName: document.getElementById(`pname-${id}`)?.value.trim() || '',
+        userCode:   document.getElementById(`ucode-${id}`)?.value.trim() || '',
         character:  document.getElementById(`chara-${id}`)?.value.trim() || '',
         rank:       document.getElementById(`rank-${id}`)?.value.trim() || '',
         opType:     op ? op.value : ''
@@ -420,33 +421,36 @@
     }).filter(m => m.playerName || m.character);
   }
 
-  async function submitForm() {
+  function submitForm() {
     if (!validate()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
 
-    const payload = {
-      teamName:  document.getElementById('teamName').value.trim(),
-      repName:   document.getElementById('repName').value.trim(),
-      members:   getMembers(),
-      timestamp: new Date().toLocaleString('ja-JP')
-    };
+    const members = getMembers();
+    const params = new URLSearchParams();
+    params.append('timestamp', new Date().toLocaleString('ja-JP'));
+    params.append('teamName',  document.getElementById('teamName').value.trim());
+    params.append('repName',   document.getElementById('repName').value.trim());
+    params.append('memberCount', members.length);
+    members.forEach((m, i) => {
+      params.append('member'+(i+1)+'_name',  m.playerName);
+      params.append('member'+(i+1)+'_ucode', m.userCode);
+      params.append('member'+(i+1)+'_chara', m.character);
+      params.append('member'+(i+1)+'_rank',  m.rank);
+      params.append('member'+(i+1)+'_op',    m.opType);
+    });
 
     document.getElementById('sendingOverlay').classList.add('active');
 
-    try {
-      await fetch(GAS_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+    fetch(GAS_URL + '?' + params.toString())
+      .then(() => {
+        document.getElementById('sendingOverlay').classList.remove('active');
+        document.getElementById('formScreen').style.display = 'none';
+        document.getElementById('successScreen').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(() => {
+        document.getElementById('sendingOverlay').classList.remove('active');
+        alert('送信に失敗しました。時間をおいて再度お試しください。');
       });
-      document.getElementById('sendingOverlay').classList.remove('active');
-      document.getElementById('formScreen').style.display = 'none';
-      document.getElementById('successScreen').style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) {
-      document.getElementById('sendingOverlay').classList.remove('active');
-      alert('送信に失敗しました。時間をおいて再度お試しください。');
-    }
   }
 </script>
 </body>
